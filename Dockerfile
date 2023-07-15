@@ -19,11 +19,20 @@ RUN wget https://storage.googleapis.com/flutter_infra_release/releases/stable/li
     tar xf flutter_linux_3.10.6-stable.tar.xz && \
     rm flutter_linux_3.10.6-stable.tar.xz
 
+# 安装 Android 模拟器
+RUN sdkmanager "system-images;android-30;default;arm64-v8a" && \
+    echo "no" | avdmanager create avd -n test -k "system-images;android-30;default;arm64-v8a" --device "Nexus 5" --force
+    
 ENV FLUTTER_HOME /flutter
 ENV PATH $PATH:$FLUTTER_HOME/bin
 
-# 安装 iOS 开发环境
-RUN xcode-select --install
+# # 安装 iOS 开发环境
+# RUN xcode-select --install
+
+# # 安装 iOS 模拟器
+# RUN yes | sudo xcode-select --switch /Applications/Xcode.app && \
+#     sudo xcodebuild -runFirstLaunch && \
+#     sudo xcodebuild -sdk iphonesimulator -version
 
 # 清理缓存
 RUN apt-get clean && \
