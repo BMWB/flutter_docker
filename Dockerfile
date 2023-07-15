@@ -1,39 +1,32 @@
 FROM ubuntu:latest
 
-# Prerequisites
-RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget
+# 安装必要的软件包
+RUN apt-get update && apt-get install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget
 
-# Setup new user
-RUN useradd -ms /bin/bash developer
-USER developer
-WORKDIR /home/developer
+# 安装 Android SDK
+RUN wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
+    unzip sdk-tools-linux-4333796.zip -d /opt/android-sdk && \
+    rm sdk-tools-linux-4333796.zip
 
-RUN apt-get update && \
-    apt-get install -y curl git && \
-    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g flutter
+ENV ANDROID_HOME /opt/android-sdk
+ENV PATH $PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
 
-RUN cd /opt && \
-    curl -o android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
-    unzip android-sdk.zip && \
-    rm android-sdk.zip && \
-    yes | /opt/tools/bin/sdkmanager --licenses && \
-    /opt/tools/bin/sdkmanager "build-tools;30.0.3" "platforms;android-29" "platform-tools" && \
-    mkdir /root/.android && \
-    touch /root/.android/repositories.cfg && \
-    echo 'export ANDROID_HOME=/opt' >> /root/.bashrc && \
-    echo 'export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools' >> /root/.bashrc
+RUN yes | sdkmanager --licenses
+RUN sdkmanager "platform-tools" "platforms;android-30"
 
-RUN apt-get install -y build-essential && \
-    apt-get install -y ruby-full && \
-    gem install cocoapods && \
-    xcode-select --install
+# 安装 Flutter SDK
+RUN wget https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_2.2.3-stable.tar.xz && \
+    tar xf flutter_linux_2.2.3-stable.tar.xz && \
+    rm flutter_linux_2.2.3-stable.tar.xz
 
+ENV FLUTTER_HOME /flutter
+ENV PATH $PATH:$FLUTTER_HOME/bin
 
-# Download Flutter SDK
-RUN git clone https://github.com/flutter/flutter.git
-ENV PATH "$PATH:/home/developer/flutter/bin"
+# 安装 iOS 开发环境
+RUN xcode-select --install
 
-# Run basic check to download Dark SDK
+# 清理缓存
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 RUN flutter doctor
