@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:latest
 
 # Prerequisites
 RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget
@@ -8,18 +8,28 @@ RUN useradd -ms /bin/bash developer
 USER developer
 WORKDIR /home/developer
 
-# Prepare Android directories and system variables
-RUN mkdir -p Android/sdk
-ENV ANDROID_SDK_ROOT /home/developer/Android/sdk
-RUN mkdir -p .android && touch .android/repositories.cfg
+RUN apt-get update && \
+    apt-get install -y curl git && \
+    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g flutter
 
-# Setup Android SDK
-RUN wget -O sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
-RUN unzip sdk-tools.zip && rm sdk-tools.zip
-RUN mv tools Android/sdk/tools
-RUN cd Android/sdk/tools/bin && yes | ./sdkmanager --licenses
-RUN cd Android/sdk/tools/bin && ./sdkmanager "build-tools;29.0.2" "patcher;v4" "platform-tools" "platforms;android-29" "sources;android-29"
-ENV PATH "$PATH:/home/developer/Android/sdk/platform-tools"
+RUN cd /opt && \
+    curl -o android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
+    unzip android-sdk.zip && \
+    rm android-sdk.zip && \
+    yes | /opt/tools/bin/sdkmanager --licenses && \
+    /opt/tools/bin/sdkmanager "build-tools;30.0.3" "platforms;android-29" "platform-tools" && \
+    mkdir /root/.android && \
+    touch /root/.android/repositories.cfg && \
+    echo 'export ANDROID_HOME=/opt' >> /root/.bashrc && \
+    echo 'export PATH=$PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools' >> /root/.bashrc
+
+RUN apt-get install -y build-essential && \
+    apt-get install -y ruby-full && \
+    gem install cocoapods && \
+    xcode-select --install
+
 
 # Download Flutter SDK
 RUN git clone https://github.com/flutter/flutter.git
