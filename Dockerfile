@@ -15,9 +15,9 @@ RUN yes | sdkmanager --licenses
 RUN sdkmanager "platform-tools" "platforms;android-30"
 
 # 安装 Flutter SDK
-RUN wget https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_2.2.3-stable.tar.xz && \
-    tar xf flutter_linux_2.2.3-stable.tar.xz && \
-    rm flutter_linux_2.2.3-stable.tar.xz
+RUN wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.10.6-stable.tar.xz && \
+    tar xf flutter_linux_3.10.6-stable.tar.xz && \
+    rm flutter_linux_3.10.6-stable.tar.xz
 
 ENV FLUTTER_HOME /flutter
 ENV PATH $PATH:$FLUTTER_HOME/bin
