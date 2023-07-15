@@ -1,30 +1,36 @@
 FROM ubuntu:latest
 
 # 安装必要的软件包
-RUN apt-get update && apt-get install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget
+RUN apt-get update && \
+    apt-get install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget && \
+    rm -rf /var/lib/apt/lists/*
+# Setup new user
+RUN useradd -ms /bin/bash developer
+USER developer
+WORKDIR /home/developer
 
-# 安装 Android SDK
-RUN wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
-    unzip sdk-tools-linux-4333796.zip -d /opt/android-sdk && \
-    rm sdk-tools-linux-4333796.zip
+# Prepare Android directories and system variables
+RUN mkdir -p Android/sdk
+ENV ANDROID_SDK_ROOT /home/developer/Android/sdk
+RUN mkdir -p .android && touch .android/repositories.cfg
 
-ENV ANDROID_HOME /opt/android-sdk
-ENV PATH $PATH:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+# Setup Android SDK
+RUN wget -O sdk-tools.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+RUN unzip sdk-tools.zip && rm sdk-tools.zip
+RUN mv tools Android/sdk/tools
+# RUN cd Android/sdk/tools/bin && yes | ./sdkmanager --licenses
+# RUN cd Android/sdk/tools/bin && ./sdkmanager "build-tools;29.0.2" "patcher;v4" "platform-tools" "platforms;android-29" "sources;android-29"
+# ENV PATH "$PATH:/home/developer/Android/sdk/platform-tools"
+
+# ENV ANDROID_HOME /opt/android-sdk
+ENV PATH $PATH:$ANDROID_SDK_ROOT/tools/bin:$ANDROID_SDK_ROOT/platform-tools
 
 RUN yes | sdkmanager --licenses
 RUN sdkmanager "platform-tools" "platforms;android-30"
 
-# 安装 Flutter SDK
-RUN wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.10.6-stable.tar.xz && \
-    tar xf flutter_linux_3.10.6-stable.tar.xz && \
-    rm flutter_linux_3.10.6-stable.tar.xz
-
-# 安装 Android 模拟器
-RUN sdkmanager "system-images;android-30;default;arm64-v8a" && \
-    echo "no" | avdmanager create avd -n test -k "system-images;android-30;default;arm64-v8a" --device "Nexus 5" --force
-    
-ENV FLUTTER_HOME /flutter
-ENV PATH $PATH:$FLUTTER_HOME/bin
+# Download Flutter SDK
+RUN git clone https://github.com/flutter/flutter.git
+ENV PATH "$PATH:/home/developer/flutter/bin"
 
 # # 安装 iOS 开发环境
 # RUN xcode-select --install
@@ -35,7 +41,7 @@ ENV PATH $PATH:$FLUTTER_HOME/bin
 #     sudo xcodebuild -sdk iphonesimulator -version
 
 # 清理缓存
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# RUN apt-get clean && \
+    # rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN flutter doctor
