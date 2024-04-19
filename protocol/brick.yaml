@@ -1,0 +1,19 @@
+name: protocol
+description: A new brick created with the Mason CLI.
+
+# The following defines the version and build number for your brick.
+# A version number is three numbers separated by dots, like 1.2.34
+# followed by an optional build number (separated by a +).
+version: 0.1.0+1
+
+# The following defines the environment for the current brick.
+# It includes the version of mason that the brick requires.
+environment:
+  mason: ">=0.1.0-dev.41 <0.1.0"
+
+vars:
+  name:
+    type: string
+    description: Your protocol name
+    default: example
+    prompt: 请输入你要创建的导出模块名称？
